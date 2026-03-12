@@ -1,47 +1,52 @@
-export type TeamRole =
-  | "Sales Manager"
-  | "Account Executive"
-  | "Sales Development Rep"
-  | "Marketing Analyst"
-  | "Customer Success";
+export type TeamRole = "Admin" | "Sales Manager" | "Sales Rep" | "Marketing Analyst";
+
+export type PipelineStage =
+  | "lead"
+  | "qualified"
+  | "proposal"
+  | "negotiation"
+  | "closed_won"
+  | "closed_lost";
+
+export type LeadStatus = "new" | "contacted" | "qualified" | "disqualified";
+
+export type ActivityType =
+  | "lead_created"
+  | "lead_updated"
+  | "deal_moved"
+  | "comment"
+  | "task_completed";
+
+export type DateRangeKey = "7d" | "30d" | "90d" | "ytd" | "all" | "custom";
 
 export type TeamMember = {
   id: string;
   name: string;
-  role: TeamRole;
   email: string;
+  role: TeamRole;
   region: string;
-  avatar: string;
-  activeDeals: number;
-  wonDeals: number;
-  revenue: number;
-  conversionRate: number;
+  monthlyTarget: number;
+  avatarColor: string;
 };
-
-export type LeadStatus = "new" | "contacted" | "qualified" | "nurturing" | "disqualified";
 
 export type Lead = {
   id: string;
   company: string;
   contactName: string;
-  email: string;
-  phone: string;
-  source: "LinkedIn" | "Website" | "Referral" | "Outbound" | "Event";
+  contactEmail: string;
+  source: "Website" | "Referral" | "Outbound" | "LinkedIn";
   ownerId: string;
   status: LeadStatus;
-  score: number;
   estimatedValue: number;
   createdAt: string;
 };
 
-export type DealStage = "Prospecting" | "Qualification" | "Proposal" | "Negotiation" | "Closed Won" | "Closed Lost";
-
 export type Deal = {
   id: string;
-  title: string;
-  accountName: string;
+  name: string;
+  company: string;
   ownerId: string;
-  stage: DealStage;
+  stage: PipelineStage;
   value: number;
   probability: number;
   expectedCloseDate: string;
@@ -49,443 +54,427 @@ export type Deal = {
   updatedAt: string;
 };
 
-export type ActivityType = "lead_added" | "deal_updated" | "note" | "call" | "meeting" | "chat";
-
 export type ActivityItem = {
   id: string;
   type: ActivityType;
   actorId: string;
-  target: string;
   message: string;
   createdAt: string;
 };
 
-export type SalesKpi = {
+export type DateRange = {
+  key: DateRangeKey;
+  label: string;
+  from: Date | null;
+  to: Date | null;
+};
+
+export type SalesMetrics = {
   revenue: number;
-  pipelineValue: number;
-  winRate: number;
+  dealsWon: number;
+  dealsLost: number;
+  openPipelineValue: number;
+  weightedForecast: number;
   conversionRate: number;
   avgDealSize: number;
-  activeDeals: number;
-  closedWon: number;
-  closedLost: number;
+  activeLeads: number;
 };
 
-export type DateRange = {
-  from: Date;
-  to: Date;
-};
-
-export type TeamComparison = {
+export type RepPerformance = {
   memberId: string;
-  name: string;
+  memberName: string;
+  role: TeamRole;
   revenue: number;
-  wonDeals: number;
-  conversionRate: number;
+  dealsWon: number;
+  dealsInProgress: number;
+  winRate: number;
+  quotaAttainment: number;
 };
 
-export const TEAM_MEMBERS: TeamMember[] = [
+const NOW = new Date("2026-03-01T10:00:00.000Z");
+
+export const teamMembers: TeamMember[] = [
   {
     id: "tm_1",
-    name: "Avery Chen",
+    name: "Ava Thompson",
+    email: "ava@salesnet.io",
     role: "Sales Manager",
-    email: "avery.chen@salesnet.io",
     region: "North America",
-    avatar: "AC",
-    activeDeals: 12,
-    wonDeals: 16,
-    revenue: 321000,
-    conversionRate: 38.1,
+    monthlyTarget: 140000,
+    avatarColor: "#0ea5e9",
   },
   {
     id: "tm_2",
-    name: "Mateo Singh",
-    role: "Account Executive",
-    email: "mateo.singh@salesnet.io",
-    region: "EMEA",
-    avatar: "MS",
-    activeDeals: 9,
-    wonDeals: 13,
-    revenue: 254000,
-    conversionRate: 34.2,
+    name: "Noah Patel",
+    email: "noah@salesnet.io",
+    role: "Sales Rep",
+    region: "North America",
+    monthlyTarget: 90000,
+    avatarColor: "#10b981",
   },
   {
     id: "tm_3",
-    name: "Nora Ibrahim",
-    role: "Sales Development Rep",
-    email: "nora.ibrahim@salesnet.io",
-    region: "APAC",
-    avatar: "NI",
-    activeDeals: 15,
-    wonDeals: 8,
-    revenue: 149000,
-    conversionRate: 27.3,
+    name: "Mia Garcia",
+    email: "mia@salesnet.io",
+    role: "Sales Rep",
+    region: "EMEA",
+    monthlyTarget: 95000,
+    avatarColor: "#8b5cf6",
   },
   {
     id: "tm_4",
-    name: "Jordan Park",
+    name: "Ethan Kim",
+    email: "ethan@salesnet.io",
     role: "Marketing Analyst",
-    email: "jordan.park@salesnet.io",
     region: "Global",
-    avatar: "JP",
-    activeDeals: 6,
-    wonDeals: 7,
-    revenue: 98000,
-    conversionRate: 25.6,
+    monthlyTarget: 0,
+    avatarColor: "#f59e0b",
   },
 ];
 
-export const LEADS: Lead[] = [
+export const leads: Lead[] = [
   {
-    id: "lead_101",
-    company: "NovaGrid Systems",
-    contactName: "Cynthia Bell",
-    email: "cynthia.bell@novagrid.com",
-    phone: "+1-415-555-0119",
+    id: "lead_1",
+    company: "Northwind Logistics",
+    contactName: "Rina Holt",
+    contactEmail: "rina@northwindlogistics.com",
     source: "Website",
     ownerId: "tm_2",
     status: "qualified",
-    score: 88,
-    estimatedValue: 54000,
-    createdAt: "2026-02-01T10:35:00.000Z",
+    estimatedValue: 22000,
+    createdAt: "2026-02-18T09:00:00.000Z",
   },
   {
-    id: "lead_102",
-    company: "Blue Harbor Retail",
-    contactName: "Damian Rhodes",
-    email: "drhodes@blueharbor.co",
-    phone: "+44-20-7946-0958",
-    source: "Referral",
-    ownerId: "tm_1",
-    status: "nurturing",
-    score: 72,
-    estimatedValue: 33000,
-    createdAt: "2026-02-03T14:21:00.000Z",
-  },
-  {
-    id: "lead_103",
-    company: "Helix Finance",
-    contactName: "Mina Kwon",
-    email: "mina.kwon@helixfinance.io",
-    phone: "+65-6355-9988",
-    source: "Outbound",
+    id: "lead_2",
+    company: "Aster Retail Group",
+    contactName: "Kiran Das",
+    contactEmail: "kiran@asterretail.com",
+    source: "LinkedIn",
     ownerId: "tm_3",
     status: "contacted",
-    score: 66,
-    estimatedValue: 22000,
-    createdAt: "2026-02-07T09:12:00.000Z",
+    estimatedValue: 14000,
+    createdAt: "2026-02-24T15:20:00.000Z",
   },
   {
-    id: "lead_104",
-    company: "Atlas Logistics",
-    contactName: "Victor Hugo",
-    email: "victor.hugo@atlaslogistics.com",
-    phone: "+1-312-555-0177",
-    source: "LinkedIn",
+    id: "lead_3",
+    company: "Blue Arc Medical",
+    contactName: "Lana Brooks",
+    contactEmail: "lana@bluearcmed.com",
+    source: "Referral",
     ownerId: "tm_2",
     status: "new",
-    score: 74,
-    estimatedValue: 41000,
-    createdAt: "2026-02-09T18:10:00.000Z",
-  },
-];
-
-export const DEALS: Deal[] = [
-  {
-    id: "deal_201",
-    title: "Enterprise Expansion Plan",
-    accountName: "NovaGrid Systems",
-    ownerId: "tm_2",
-    stage: "Proposal",
-    value: 68000,
-    probability: 65,
-    expectedCloseDate: "2026-03-28",
-    createdAt: "2026-01-21T10:00:00.000Z",
-    updatedAt: "2026-02-12T11:45:00.000Z",
+    estimatedValue: 31000,
+    createdAt: "2026-02-27T11:45:00.000Z",
   },
   {
-    id: "deal_202",
-    title: "Annual Marketing Suite",
-    accountName: "Blue Harbor Retail",
-    ownerId: "tm_1",
-    stage: "Negotiation",
-    value: 45000,
-    probability: 80,
-    expectedCloseDate: "2026-03-20",
-    createdAt: "2026-01-18T08:30:00.000Z",
-    updatedAt: "2026-02-13T15:20:00.000Z",
-  },
-  {
-    id: "deal_203",
-    title: "Pilot Analytics Rollout",
-    accountName: "Helix Finance",
+    id: "lead_4",
+    company: "Pioneer Fintech",
+    contactName: "Victor Hale",
+    contactEmail: "victor@pioneerfintech.io",
+    source: "Outbound",
     ownerId: "tm_3",
-    stage: "Qualification",
-    value: 28000,
-    probability: 45,
-    expectedCloseDate: "2026-04-04",
-    createdAt: "2026-02-02T12:25:00.000Z",
-    updatedAt: "2026-02-14T09:40:00.000Z",
-  },
-  {
-    id: "deal_204",
-    title: "Q1 Contract Renewal",
-    accountName: "Eon Dynamics",
-    ownerId: "tm_1",
-    stage: "Closed Won",
-    value: 92000,
-    probability: 100,
-    expectedCloseDate: "2026-02-10",
-    createdAt: "2026-01-10T09:15:00.000Z",
-    updatedAt: "2026-02-10T16:00:00.000Z",
-  },
-  {
-    id: "deal_205",
-    title: "Multi-region Onboarding",
-    accountName: "Atlas Logistics",
-    ownerId: "tm_2",
-    stage: "Prospecting",
-    value: 36000,
-    probability: 30,
-    expectedCloseDate: "2026-04-16",
-    createdAt: "2026-02-08T14:10:00.000Z",
-    updatedAt: "2026-02-15T08:55:00.000Z",
-  },
-  {
-    id: "deal_206",
-    title: "Legacy Migration Package",
-    accountName: "Brightline Health",
-    ownerId: "tm_4",
-    stage: "Closed Lost",
-    value: 51000,
-    probability: 0,
-    expectedCloseDate: "2026-02-05",
-    createdAt: "2026-01-12T10:00:00.000Z",
-    updatedAt: "2026-02-05T17:22:00.000Z",
+    status: "qualified",
+    estimatedValue: 40000,
+    createdAt: "2026-02-11T08:10:00.000Z",
   },
 ];
 
-export const ACTIVITIES: ActivityItem[] = [
+export const deals: Deal[] = [
+  {
+    id: "deal_1",
+    name: "Northwind Annual Contract",
+    company: "Northwind Logistics",
+    ownerId: "tm_2",
+    stage: "proposal",
+    value: 30000,
+    probability: 0.65,
+    expectedCloseDate: "2026-03-20T00:00:00.000Z",
+    createdAt: "2026-02-10T10:00:00.000Z",
+    updatedAt: "2026-02-26T14:15:00.000Z",
+  },
+  {
+    id: "deal_2",
+    name: "Aster Expansion Package",
+    company: "Aster Retail Group",
+    ownerId: "tm_3",
+    stage: "negotiation",
+    value: 54000,
+    probability: 0.8,
+    expectedCloseDate: "2026-03-08T00:00:00.000Z",
+    createdAt: "2026-01-28T12:10:00.000Z",
+    updatedAt: "2026-02-28T13:00:00.000Z",
+  },
+  {
+    id: "deal_3",
+    name: "Blue Arc Pilot",
+    company: "Blue Arc Medical",
+    ownerId: "tm_2",
+    stage: "closed_won",
+    value: 47000,
+    probability: 1,
+    expectedCloseDate: "2026-02-14T00:00:00.000Z",
+    createdAt: "2026-01-14T10:30:00.000Z",
+    updatedAt: "2026-02-14T17:45:00.000Z",
+  },
+  {
+    id: "deal_4",
+    name: "Pioneer Core Suite",
+    company: "Pioneer Fintech",
+    ownerId: "tm_3",
+    stage: "closed_lost",
+    value: 62000,
+    probability: 0,
+    expectedCloseDate: "2026-02-16T00:00:00.000Z",
+    createdAt: "2026-01-20T09:00:00.000Z",
+    updatedAt: "2026-02-16T12:20:00.000Z",
+  },
+  {
+    id: "deal_5",
+    name: "Helios Growth Bundle",
+    company: "Helios Commerce",
+    ownerId: "tm_1",
+    stage: "qualified",
+    value: 38000,
+    probability: 0.35,
+    expectedCloseDate: "2026-03-29T00:00:00.000Z",
+    createdAt: "2026-02-22T07:35:00.000Z",
+    updatedAt: "2026-02-25T08:40:00.000Z",
+  },
+];
+
+export const activities: ActivityItem[] = [
   {
     id: "act_1",
-    type: "deal_updated",
+    type: "lead_created",
     actorId: "tm_2",
-    target: "deal_201",
-    message: "Moved Enterprise Expansion Plan to Proposal stage.",
-    createdAt: "2026-02-15T09:30:00.000Z",
+    message: "Created lead Blue Arc Medical from referral campaign.",
+    createdAt: "2026-02-27T11:45:00.000Z",
   },
   {
     id: "act_2",
-    type: "meeting",
-    actorId: "tm_1",
-    target: "deal_202",
-    message: "Completed pricing alignment meeting with Blue Harbor stakeholders.",
-    createdAt: "2026-02-15T08:42:00.000Z",
+    type: "deal_moved",
+    actorId: "tm_3",
+    message: "Moved Aster Expansion Package from proposal to negotiation.",
+    createdAt: "2026-02-28T13:00:00.000Z",
   },
   {
     id: "act_3",
-    type: "chat",
-    actorId: "tm_3",
-    target: "lead_104",
-    message: "Shared lead qualification notes with Mateo in team channel.",
-    createdAt: "2026-02-15T07:55:00.000Z",
+    type: "comment",
+    actorId: "tm_1",
+    message: "Added pricing guidance for Northwind Annual Contract.",
+    createdAt: "2026-02-26T16:05:00.000Z",
   },
   {
     id: "act_4",
-    type: "lead_added",
+    type: "task_completed",
     actorId: "tm_4",
-    target: "lead_104",
-    message: "Added Atlas Logistics from LinkedIn campaign.",
-    createdAt: "2026-02-14T18:02:00.000Z",
+    message: "Published monthly funnel analysis dashboard snapshot.",
+    createdAt: "2026-02-25T18:25:00.000Z",
   },
 ];
 
-export function parseDateSafe(value: string | Date): Date {
-  const parsed = value instanceof Date ? value : new Date(value);
-  if (Number.isNaN(parsed.getTime())) {
-    return new Date(0);
+export function getDateRange(key: DateRangeKey, customFrom?: string, customTo?: string): DateRange {
+  const to = new Date(NOW);
+
+  if (key === "all") {
+    return { key, label: "All time", from: null, to: null };
   }
-  return parsed;
-}
 
-export function inDateRange(date: string | Date, range?: DateRange): boolean {
-  if (!range) return true;
-  const d = parseDateSafe(date).getTime();
-  return d >= range.from.getTime() && d <= range.to.getTime();
-}
+  if (key === "custom") {
+    const fromDate = customFrom ? new Date(customFrom) : null;
+    const toDate = customTo ? new Date(customTo) : null;
 
-export function formatCurrency(value: number, currency = "USD", locale = "en-US"): string {
-  return new Intl.NumberFormat(locale, {
-    style: "currency",
-    currency,
-    maximumFractionDigits: 0,
-  }).format(value);
-}
+    if (fromDate && Number.isNaN(fromDate.getTime())) {
+      throw new Error("Invalid customFrom date.");
+    }
+    if (toDate && Number.isNaN(toDate.getTime())) {
+      throw new Error("Invalid customTo date.");
+    }
 
-export function formatPercent(value: number, locale = "en-US"): string {
-  return new Intl.NumberFormat(locale, {
-    style: "percent",
-    minimumFractionDigits: 1,
-    maximumFractionDigits: 1,
-  }).format(value / 100);
-}
-
-export function getPipelineByStage(deals: Deal[] = DEALS) {
-  const stages: DealStage[] = [
-    "Prospecting",
-    "Qualification",
-    "Proposal",
-    "Negotiation",
-    "Closed Won",
-    "Closed Lost",
-  ];
-
-  return stages.map((stage) => {
-    const stageDeals = deals.filter((d) => d.stage === stage);
-    const totalValue = stageDeals.reduce((sum, d) => sum + d.value, 0);
     return {
-      stage,
-      count: stageDeals.length,
-      totalValue,
+      key,
+      label: "Custom",
+      from: fromDate,
+      to: toDate,
     };
-  });
-}
+  }
 
-export function getSalesKpis(range?: DateRange, deals: Deal[] = DEALS): SalesKpi {
-  const visibleDeals = deals.filter((d) => inDateRange(d.updatedAt, range));
+  const from = new Date(to);
+  if (key === "7d") from.setDate(to.getDate() - 7);
+  if (key === "30d") from.setDate(to.getDate() - 30);
+  if (key === "90d") from.setDate(to.getDate() - 90);
+  if (key === "ytd") {
+    from.setMonth(0, 1);
+    from.setHours(0, 0, 0, 0);
+  }
 
-  const activeDeals = visibleDeals.filter(
-    (d) => d.stage !== "Closed Won" && d.stage !== "Closed Lost"
-  );
-  const closedWon = visibleDeals.filter((d) => d.stage === "Closed Won");
-  const closedLost = visibleDeals.filter((d) => d.stage === "Closed Lost");
-  const closedTotal = closedWon.length + closedLost.length;
-
-  const revenue = closedWon.reduce((sum, d) => sum + d.value, 0);
-  const pipelineValue = activeDeals.reduce((sum, d) => sum + d.value, 0);
-  const avgDealSize = visibleDeals.length
-    ? Math.round(visibleDeals.reduce((sum, d) => sum + d.value, 0) / visibleDeals.length)
-    : 0;
-
-  const weightedConversions = visibleDeals.length
-    ? visibleDeals.reduce((sum, d) => sum + d.probability, 0) / visibleDeals.length
-    : 0;
+  const labelMap: Record<Exclude<DateRangeKey, "custom">, string> = {
+    "7d": "Last 7 days",
+    "30d": "Last 30 days",
+    "90d": "Last 90 days",
+    ytd: "Year to date",
+    all: "All time",
+  };
 
   return {
-    revenue,
-    pipelineValue,
-    winRate: closedTotal ? (closedWon.length / closedTotal) * 100 : 0,
-    conversionRate: weightedConversions,
-    avgDealSize,
-    activeDeals: activeDeals.length,
-    closedWon: closedWon.length,
-    closedLost: closedLost.length,
+    key,
+    label: labelMap[key],
+    from,
+    to,
   };
 }
 
-export function getRepStats(memberId: string, deals: Deal[] = DEALS): TeamComparison | null {
-  const member = TEAM_MEMBERS.find((m) => m.id === memberId);
-  if (!member) return null;
+export function isWithinRange(value: string, range: DateRange): boolean {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return false;
 
-  const assigned = deals.filter((d) => d.ownerId === memberId);
-  const won = assigned.filter((d) => d.stage === "Closed Won");
-  const lost = assigned.filter((d) => d.stage === "Closed Lost");
-  const closedCount = won.length + lost.length;
-
-  return {
-    memberId,
-    name: member.name,
-    revenue: won.reduce((sum, d) => sum + d.value, 0),
-    wonDeals: won.length,
-    conversionRate: closedCount ? (won.length / closedCount) * 100 : 0,
-  };
-}
-
-export function getTeamComparison(deals: Deal[] = DEALS): TeamComparison[] {
-  return TEAM_MEMBERS.map((member) => getRepStats(member.id, deals))
-    .filter((item): item is TeamComparison => Boolean(item))
-    .sort((a, b) => b.revenue - a.revenue);
-}
-
-export function getActivityFeed(limit = 10, activities: ActivityItem[] = ACTIVITIES): ActivityItem[] {
-  const safeLimit = Math.max(1, Math.min(limit, 100));
-  return [...activities]
-    .sort((a, b) => parseDateSafe(b.createdAt).getTime() - parseDateSafe(a.createdAt).getTime())
-    .slice(0, safeLimit);
-}
-
-export function searchLeads(query: string, leads: Lead[] = LEADS): Lead[] {
-  const q = query.trim().toLowerCase();
-  if (!q) return leads;
-
-  return leads.filter((lead) => {
-    const haystack = [lead.company, lead.contactName, lead.email, lead.source, lead.status]
-      .join(" ")
-      .toLowerCase();
-    return haystack.includes(q);
-  });
-}
-
-function csvEscape(value: string | number): string {
-  const text = String(value ?? "");
-  if (/[",\n]/.test(text)) {
-    return `"${text.replace(/"/g, '""')}"`;
-  }
-  return text;
-}
-
-export function dealsToCsv(deals: Deal[] = DEALS): string {
-  const headers = [
-    "Deal ID",
-    "Title",
-    "Account",
-    "Owner",
-    "Stage",
-    "Value",
-    "Probability",
-    "Expected Close",
-    "Updated At",
-  ];
-
-  const rows = deals.map((deal) => {
-    const owner = TEAM_MEMBERS.find((m) => m.id === deal.ownerId)?.name ?? "Unknown";
-    return [
-      deal.id,
-      deal.title,
-      deal.accountName,
-      owner,
-      deal.stage,
-      deal.value,
-      `${deal.probability}%`,
-      deal.expectedCloseDate,
-      deal.updatedAt,
-    ]
-      .map(csvEscape)
-      .join(",");
-  });
-
-  return [headers.join(","), ...rows].join("\n");
-}
-
-export function exportCsvFile(csvContent: string, filename = "sales-report.csv"): boolean {
-  if (typeof window === "undefined" || typeof document === "undefined") {
-    return false;
-  }
-
-  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.setAttribute("download", filename);
-  link.style.display = "none";
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  if (range.from && date < range.from) return false;
+  if (range.to && date > range.to) return false;
   return true;
 }
 
-export const DEFAULT_DATE_RANGE: DateRange = {
-  from: new Date("2026-01-01T00:00:00.000Z"),
-  to: new Date("2026-12-31T23:59:59.999Z"),
+export function filterDealsByRange(inputDeals: Deal[], range: DateRange): Deal[] {
+  return inputDeals.filter((deal) => isWithinRange(deal.updatedAt, range));
+}
+
+export function filterActivitiesByRange(inputActivities: ActivityItem[], range: DateRange): ActivityItem[] {
+  return inputActivities.filter((activity) => isWithinRange(activity.createdAt, range));
+}
+
+export function calculateSalesMetrics(
+  inputDeals: Deal[],
+  inputLeads: Lead[],
+  range: DateRange,
+): SalesMetrics {
+  const scopedDeals = filterDealsByRange(inputDeals, range);
+  const won = scopedDeals.filter((deal) => deal.stage === "closed_won");
+  const lost = scopedDeals.filter((deal) => deal.stage === "closed_lost");
+  const open = scopedDeals.filter(
+    (deal) => deal.stage !== "closed_won" && deal.stage !== "closed_lost",
+  );
+
+  const revenue = won.reduce((sum, deal) => sum + deal.value, 0);
+  const openPipelineValue = open.reduce((sum, deal) => sum + deal.value, 0);
+  const weightedForecast = open.reduce((sum, deal) => sum + deal.value * deal.probability, 0);
+  const decisions = won.length + lost.length;
+  const conversionRate = decisions === 0 ? 0 : won.length / decisions;
+  const avgDealSize = won.length === 0 ? 0 : revenue / won.length;
+
+  const activeLeads = inputLeads.filter((lead) => lead.status !== "disqualified").length;
+
+  return {
+    revenue,
+    dealsWon: won.length,
+    dealsLost: lost.length,
+    openPipelineValue,
+    weightedForecast,
+    conversionRate,
+    avgDealSize,
+    activeLeads,
+  };
+}
+
+export function getRepPerformance(
+  inputTeam: TeamMember[],
+  inputDeals: Deal[],
+  range: DateRange,
+): RepPerformance[] {
+  const scopedDeals = filterDealsByRange(inputDeals, range);
+
+  return inputTeam
+    .filter((member) => member.role === "Sales Rep" || member.role === "Sales Manager")
+    .map((member) => {
+      const memberDeals = scopedDeals.filter((deal) => deal.ownerId === member.id);
+      const wonDeals = memberDeals.filter((deal) => deal.stage === "closed_won");
+      const lostDeals = memberDeals.filter((deal) => deal.stage === "closed_lost");
+      const inProgressDeals = memberDeals.filter(
+        (deal) => deal.stage !== "closed_won" && deal.stage !== "closed_lost",
+      );
+
+      const revenue = wonDeals.reduce((sum, deal) => sum + deal.value, 0);
+      const decisions = wonDeals.length + lostDeals.length;
+      const winRate = decisions > 0 ? wonDeals.length / decisions : 0;
+      const quotaAttainment = member.monthlyTarget > 0 ? revenue / member.monthlyTarget : 0;
+
+      return {
+        memberId: member.id,
+        memberName: member.name,
+        role: member.role,
+        revenue,
+        dealsWon: wonDeals.length,
+        dealsInProgress: inProgressDeals.length,
+        winRate,
+        quotaAttainment,
+      };
+    })
+    .sort((a, b) => b.revenue - a.revenue);
+}
+
+function escapeCsvValue(value: string): string {
+  if (value.includes(",") || value.includes("\n") || value.includes('"')) {
+    return `"${value.replace(/"/g, '""')}"`;
+  }
+  return value;
+}
+
+export function toCsv<T extends Record<string, string | number | boolean | null | undefined>>(
+  rows: T[],
+  columns: Array<keyof T>,
+): string {
+  const header = columns.join(",");
+  const lines = rows.map((row) =>
+    columns
+      .map((key) => {
+        const raw = row[key];
+        const value = raw === null || raw === undefined ? "" : String(raw);
+        return escapeCsvValue(value);
+      })
+      .join(","),
+  );
+
+  return [header, ...lines].join("\n");
+}
+
+export function buildDealsCsvReport(inputDeals: Deal[]): string {
+  const rows = inputDeals.map((deal) => ({
+    id: deal.id,
+    name: deal.name,
+    company: deal.company,
+    stage: deal.stage,
+    value: deal.value,
+    probability: Math.round(deal.probability * 100),
+    expectedCloseDate: deal.expectedCloseDate,
+    updatedAt: deal.updatedAt,
+  }));
+
+  return toCsv(rows, [
+    "id",
+    "name",
+    "company",
+    "stage",
+    "value",
+    "probability",
+    "expectedCloseDate",
+    "updatedAt",
+  ]);
+}
+
+export function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
+
+export function formatPercent(value: number): string {
+  return `${(value * 100).toFixed(1)}%`;
+}
+
+export const mockDashboard = {
+  generatedAt: NOW.toISOString(),
+  teamMembers,
+  leads,
+  deals,
+  activities,
 };

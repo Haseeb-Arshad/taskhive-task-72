@@ -1,242 +1,228 @@
-"use client";
+import React from "react";
 
-import * as React from "react";
+type StatusState = "empty" | "error" | "complete" | "loading";
 
-type StatusVariant = "empty" | "error" | "success" | "loading" | "info";
-
-type StatusAction = {
-  label: string;
-  onClick: () => void;
-  disabled?: boolean;
-};
-
-export type StatusPanelProps = {
-  variant: StatusVariant;
+type StatusPanelProps = {
+  state: StatusState;
   title?: string;
   description?: string;
   details?: string;
-  onRetry?: () => void;
-  primaryAction?: StatusAction;
-  secondaryAction?: StatusAction;
+  actionLabel?: string;
+  actionHref?: string;
   className?: string;
-  compact?: boolean;
+  children?: React.ReactNode;
 };
 
-function cn(...classes: Array<string | false | null | undefined>) {
-  return classes.filter(Boolean).join(" ");
+type StateConfig = {
+  accent: string;
+  bg: string;
+  border: string;
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+};
+
+function joinClassNames(...parts: Array<string | undefined>): string {
+  return parts.filter(Boolean).join(" ");
 }
 
-const variantStyles: Record<
-  StatusVariant,
-  {
-    container: string;
-    badge: string;
-    title: string;
-    description: string;
-  }
-> = {
-  empty: {
-    container:
-      "border-slate-200 bg-gradient-to-br from-slate-50 to-white dark:border-slate-800 dark:from-slate-950 dark:to-slate-900",
-    badge:
-      "bg-slate-100 text-slate-700 ring-slate-200 dark:bg-slate-800/80 dark:text-slate-300 dark:ring-slate-700",
-    title: "text-slate-900 dark:text-slate-100",
-    description: "text-slate-600 dark:text-slate-400",
-  },
-  error: {
-    container:
-      "border-red-200 bg-gradient-to-br from-red-50 to-white dark:border-red-900/70 dark:from-red-950/40 dark:to-slate-900",
-    badge:
-      "bg-red-100 text-red-700 ring-red-200 dark:bg-red-900/40 dark:text-red-300 dark:ring-red-800",
-    title: "text-red-900 dark:text-red-100",
-    description: "text-red-700/90 dark:text-red-300/90",
-  },
-  success: {
-    container:
-      "border-emerald-200 bg-gradient-to-br from-emerald-50 to-white dark:border-emerald-900/70 dark:from-emerald-950/40 dark:to-slate-900",
-    badge:
-      "bg-emerald-100 text-emerald-700 ring-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-300 dark:ring-emerald-800",
-    title: "text-emerald-900 dark:text-emerald-100",
-    description: "text-emerald-700/90 dark:text-emerald-300/90",
-  },
-  loading: {
-    container:
-      "border-indigo-200 bg-gradient-to-br from-indigo-50 to-white dark:border-indigo-900/70 dark:from-indigo-950/40 dark:to-slate-900",
-    badge:
-      "bg-indigo-100 text-indigo-700 ring-indigo-200 dark:bg-indigo-900/40 dark:text-indigo-300 dark:ring-indigo-800",
-    title: "text-indigo-900 dark:text-indigo-100",
-    description: "text-indigo-700/90 dark:text-indigo-300/90",
-  },
-  info: {
-    container:
-      "border-sky-200 bg-gradient-to-br from-sky-50 to-white dark:border-sky-900/70 dark:from-sky-950/40 dark:to-slate-900",
-    badge:
-      "bg-sky-100 text-sky-700 ring-sky-200 dark:bg-sky-900/40 dark:text-sky-300 dark:ring-sky-800",
-    title: "text-sky-900 dark:text-sky-100",
-    description: "text-sky-700/90 dark:text-sky-300/90",
-  },
-};
-
-const defaults: Record<StatusVariant, { title: string; description: string; label: string }> = {
-  empty: {
-    title: "Nothing to show yet",
-    description: "Once your team starts adding leads, activities, and deals, insights will appear here.",
-    label: "Empty state",
-  },
-  error: {
-    title: "Something went wrong",
-    description: "We could not load this section. Please retry or come back in a moment.",
-    label: "Error",
-  },
-  success: {
-    title: "All caught up",
-    description: "Everything is synced and your latest updates are reflected in the dashboard.",
-    label: "Completed",
-  },
-  loading: {
-    title: "Loading data",
-    description: "We are preparing the latest team and sales analytics for you.",
-    label: "Loading",
-  },
-  info: {
-    title: "Heads up",
-    description: "This view is informational and updates in real time as activity changes.",
-    label: "Info",
-  },
-};
-
-function StatusIcon({ variant }: { variant: StatusVariant }) {
-  if (variant === "loading") {
-    return (
-      <span
-        className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent"
-        aria-hidden="true"
-      />
-    );
-  }
-
-  const common = "h-6 w-6";
-
-  switch (variant) {
+function getStateConfig(state: StatusState): StateConfig {
+  switch (state) {
     case "error":
-      return (
-        <svg viewBox="0 0 24 24" className={common} fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-          <path d="M12 8v5" strokeLinecap="round" />
-          <circle cx="12" cy="16.8" r="0.8" fill="currentColor" />
-          <path d="M10.3 3.8 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.8a2 2 0 0 0-3.4 0Z" strokeLinejoin="round" />
-        </svg>
-      );
-    case "success":
-      return (
-        <svg viewBox="0 0 24 24" className={common} fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-          <circle cx="12" cy="12" r="9" />
-          <path d="m8.5 12.2 2.3 2.4 4.8-5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      );
-    case "info":
-      return (
-        <svg viewBox="0 0 24 24" className={common} fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-          <circle cx="12" cy="12" r="9" />
-          <path d="M12 10.5v5" strokeLinecap="round" />
-          <circle cx="12" cy="7.8" r="0.8" fill="currentColor" />
-        </svg>
-      );
+      return {
+        accent: "#ef4444",
+        bg: "#fef2f2",
+        border: "#fecaca",
+        title: "Something went wrong",
+        description:
+          "We hit an issue while loading this section. Please retry or check your connection.",
+        icon: (
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 8V13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+            <path d="M12 16.5H12.01" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
+            <path
+              d="M10.29 3.86L1.82 18a2 2 0 0 0 1.72 3h16.92a2 2 0 0 0 1.72-3L13.71 3.86a2 2 0 0 0-3.42 0Z"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        ),
+      };
+    case "complete":
+      return {
+        accent: "#16a34a",
+        bg: "#f0fdf4",
+        border: "#bbf7d0",
+        title: "All set",
+        description: "This workflow is complete. Your latest data has been processed successfully.",
+        icon: (
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path
+              d="M20 7L9 18l-5-5"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        ),
+      };
+    case "loading":
+      return {
+        accent: "#2563eb",
+        bg: "#eff6ff",
+        border: "#bfdbfe",
+        title: "Loading data",
+        description: "We are preparing your latest team, pipeline, and analytics information.",
+        icon: (
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="2" opacity="0.25" />
+            <path
+              d="M20 12a8 8 0 0 0-8-8"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+          </svg>
+        ),
+      };
     case "empty":
     default:
-      return (
-        <svg viewBox="0 0 24 24" className={common} fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-          <rect x="4" y="5" width="16" height="14" rx="2" />
-          <path d="M8 9h8M8 13h5" strokeLinecap="round" />
-        </svg>
-      );
+      return {
+        accent: "#475569",
+        bg: "#f8fafc",
+        border: "#e2e8f0",
+        title: "No data yet",
+        description:
+          "There is nothing to display in this view right now. Create leads, log activity, or adjust filters.",
+        icon: (
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="1.8" />
+            <path d="M7 9H17" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+            <path d="M7 13H14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+          </svg>
+        ),
+      };
   }
 }
 
 export default function StatusPanel({
-  variant,
+  state,
   title,
   description,
   details,
-  onRetry,
-  primaryAction,
-  secondaryAction,
+  actionLabel,
+  actionHref,
   className,
-  compact = false,
+  children,
 }: StatusPanelProps) {
-  const copy = defaults[variant];
-  const style = variantStyles[variant];
-  const resolvedTitle = title ?? copy.title;
-  const resolvedDescription = description ?? copy.description;
+  const config = getStateConfig(state);
+  const resolvedTitle = title ?? config.title;
+  const resolvedDescription = description ?? config.description;
 
   return (
     <section
-      role={variant === "error" ? "alert" : "status"}
-      aria-live={variant === "error" ? "assertive" : "polite"}
-      className={cn(
-        "w-full rounded-2xl border p-5 shadow-sm transition-colors duration-200 sm:p-6",
-        style.container,
-        className
-      )}
+      role="status"
+      aria-live={state === "error" ? "assertive" : "polite"}
+      className={joinClassNames("status-panel", className)}
+      style={{
+        background: config.bg,
+        border: `1px solid ${config.border}`,
+        borderRadius: 14,
+        padding: "1rem",
+        display: "grid",
+        gap: "0.75rem",
+        boxShadow: "0 1px 3px rgba(15, 23, 42, 0.07)",
+      }}
     >
-      <div className={cn("flex items-start gap-4", compact && "gap-3")}> 
+      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
         <div
-          className={cn(
-            "inline-flex shrink-0 items-center justify-center rounded-xl p-2.5 ring-1",
-            style.badge,
-            compact && "p-2"
-          )}
+          aria-hidden="true"
+          style={{
+            color: config.accent,
+            width: 38,
+            height: 38,
+            borderRadius: 12,
+            display: "grid",
+            placeItems: "center",
+            background: "rgba(255,255,255,0.75)",
+            border: `1px solid ${config.border}`,
+            flexShrink: 0,
+          }}
         >
-          <StatusIcon variant={variant} />
-          <span className="sr-only">{copy.label}</span>
+          {config.icon}
         </div>
 
-        <div className="min-w-0 flex-1">
-          <h3 className={cn("text-base font-semibold tracking-tight sm:text-lg", style.title)}>{resolvedTitle}</h3>
-          <p className={cn("mt-1 text-sm leading-6", style.description)}>{resolvedDescription}</p>
-
-          {details ? (
-            <pre className="mt-3 max-h-44 overflow-auto rounded-lg border border-black/5 bg-black/[0.03] p-3 text-xs text-slate-700 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300">
-              {details}
-            </pre>
-          ) : null}
-
-          {(onRetry || primaryAction || secondaryAction) && (
-            <div className="mt-4 flex flex-wrap items-center gap-2.5">
-              {onRetry && (
-                <button
-                  type="button"
-                  onClick={onRetry}
-                  className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 shadow-sm transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
-                >
-                  Retry
-                </button>
-              )}
-
-              {primaryAction && (
-                <button
-                  type="button"
-                  onClick={primaryAction.onClick}
-                  disabled={primaryAction.disabled}
-                  className="inline-flex items-center justify-center rounded-lg bg-slate-900 px-3.5 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
-                >
-                  {primaryAction.label}
-                </button>
-              )}
-
-              {secondaryAction && (
-                <button
-                  type="button"
-                  onClick={secondaryAction.onClick}
-                  disabled={secondaryAction.disabled}
-                  className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-transparent px-3.5 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800/70"
-                >
-                  {secondaryAction.label}
-                </button>
-              )}
-            </div>
-          )}
+        <div style={{ minWidth: 0 }}>
+          <h3
+            style={{
+              margin: 0,
+              color: "#0f172a",
+              fontSize: "1rem",
+              fontWeight: 700,
+              lineHeight: 1.25,
+            }}
+          >
+            {resolvedTitle}
+          </h3>
+          <p
+            style={{
+              margin: "0.25rem 0 0",
+              color: "#334155",
+              fontSize: "0.92rem",
+              lineHeight: 1.5,
+            }}
+          >
+            {resolvedDescription}
+          </p>
         </div>
       </div>
+
+      {details ? (
+        <p
+          style={{
+            margin: 0,
+            color: "#475569",
+            fontSize: "0.86rem",
+            lineHeight: 1.5,
+            background: "rgba(255,255,255,0.7)",
+            borderRadius: 10,
+            padding: "0.625rem 0.75rem",
+            border: `1px dashed ${config.border}`,
+            whiteSpace: "pre-wrap",
+          }}
+        >
+          {details}
+        </p>
+      ) : null}
+
+      {children ? <div>{children}</div> : null}
+
+      {actionLabel && actionHref ? (
+        <div>
+          <a
+            href={actionHref}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "0.4rem",
+              textDecoration: "none",
+              fontSize: "0.9rem",
+              fontWeight: 600,
+              color: "#0f172a",
+              border: `1px solid ${config.border}`,
+              background: "#ffffff",
+              padding: "0.55rem 0.8rem",
+              borderRadius: 10,
+            }}
+          >
+            {actionLabel}
+          </a>
+        </div>
+      ) : null}
     </section>
   );
 }
