@@ -15,49 +15,36 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL && process.env.NEXT_PUBLIC_SITE_URL.startsWith("http")
-    ? process.env.NEXT_PUBLIC_SITE_URL
-    : "https://sales-marketing-network.app";
-
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
+  metadataBase: new URL("https://example.com"),
   title: {
     default: "Sales Marketing Network",
-    template: "%s • Sales Marketing Network",
+    template: "%s · Sales Marketing Network",
   },
   description:
-    "Collaborative sales workspace for team pipeline execution, lead management, and real-time analytics.",
+    "Collaborative sales marketing workspace for pipeline management, team performance analytics, and real-time execution.",
   applicationName: "Sales Marketing Network",
   keywords: [
     "sales",
     "marketing",
     "CRM",
-    "pipeline tracking",
-    "team analytics",
+    "analytics",
+    "pipeline",
     "dashboard",
+    "team collaboration",
   ],
-  authors: [{ name: "Sales Marketing Network Team" }],
-  creator: "Sales Marketing Network",
-  publisher: "Sales Marketing Network",
-  formatDetection: {
-    email: false,
-    address: false,
-    telephone: false,
-  },
   openGraph: {
-    type: "website",
-    url: "/",
     title: "Sales Marketing Network",
     description:
-      "Drive team revenue with shared pipeline management, live collaboration, and performance intelligence.",
+      "Collaborative sales marketing workspace for pipeline management, team performance analytics, and real-time execution.",
+    type: "website",
     siteName: "Sales Marketing Network",
   },
   twitter: {
     card: "summary_large_image",
     title: "Sales Marketing Network",
     description:
-      "A production-ready collaboration and analytics foundation for modern sales teams.",
+      "Real-time sales collaboration, performance dashboards, and analytics for distributed teams.",
   },
   robots: {
     index: true,
@@ -68,10 +55,9 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f8fafc" },
-    { media: "(prefers-color-scheme: dark)", color: "#020617" },
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0b1020" },
   ],
 };
 
@@ -80,6 +66,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const currentYear = new Date().getFullYear();
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${jetbrainsMono.variable}`}>
@@ -88,31 +76,53 @@ export default function RootLayout({
         </a>
 
         <div className="app-shell">
-          <header className="app-header">
-            <div className="container app-header-inner">
-              <Link className="brand" href="/" aria-label="Go to homepage">
+          <header className="app-header" role="banner">
+            <div className="container header-inner">
+              <div className="brand-block" aria-label="Sales Marketing Network">
                 <span className="brand-mark" aria-hidden="true">
                   SM
                 </span>
-                <span className="brand-text">Sales Marketing Network</span>
-              </Link>
+                <div className="brand-text">
+                  <p className="brand-title">Sales Marketing Network</p>
+                  <p className="brand-subtitle">Team-first revenue operations</p>
+                </div>
+              </div>
 
-              <nav className="app-nav" aria-label="Primary">
-                <Link href="/">Overview</Link>
+              <nav className="top-nav" aria-label="Primary navigation">
+                <Link href="/">Dashboard</Link>
                 <Link href="/">Pipeline</Link>
-                <Link href="/">Analytics</Link>
+                <Link href="/">Team</Link>
+                <Link href="/">Reports</Link>
               </nav>
+
+              <div className="header-pill" aria-live="polite">
+                <span className="status-dot" aria-hidden="true" />
+                System Ready
+              </div>
             </div>
           </header>
 
-          <main id="main-content" className="app-main container">
-            {children}
-          </main>
+          <div className="container app-body">
+            <aside className="sidebar" aria-label="Workspace sections">
+              <p className="sidebar-title">Workspace</p>
+              <ul className="sidebar-list">
+                <li>Lead Database</li>
+                <li>Deal Tracking</li>
+                <li>Activity Feed</li>
+                <li>Performance KPIs</li>
+                <li>Export Center</li>
+              </ul>
+            </aside>
 
-          <footer className="app-footer">
-            <div className="container app-footer-inner">
-              <p>© {new Date().getFullYear()} Sales Marketing Network</p>
-              <p className="footer-meta">Built for collaborative sales execution and analytics.</p>
+            <main id="main-content" className="main-content" role="main">
+              {children}
+            </main>
+          </div>
+
+          <footer className="app-footer" role="contentinfo">
+            <div className="container footer-inner">
+              <p>© {currentYear} Sales Marketing Network</p>
+              <p>Built for high-velocity sales teams and measurable growth.</p>
             </div>
           </footer>
         </div>
